@@ -5,3 +5,4 @@ A basic API client for the Wesabe API
 == Dependencies
 
 * curb
+* activesupport
