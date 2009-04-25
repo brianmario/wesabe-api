@@ -63,15 +63,26 @@ module Apis
       end
       
       def self.get(url)
-        @curl = Curl::Easy.new
-        @curl.follow_location = true
-        @curl.connect_timeout = 5
-        @curl.timeout = 5
-        @curl.dns_cache_timeout = 5
-        @curl.userpwd = "#{@@username}:#{@@password}"
-        @curl.url = API_URL+url
-        @curl.perform
-        return @curl.body_str
+        body = ''
+        curl = Curl::Easy.new
+        curl.headers["Accept-encoding"] = 'gzip, deflate'
+        curl.follow_location = true
+        curl.connect_timeout = 5
+        curl.timeout = 5
+        curl.dns_cache_timeout = 5
+        curl.userpwd = "#{@@username}:#{@@password}"
+        curl.url = API_URL+url
+        curl.perform
+        if curl.header_str.match(/Content-Encoding: gzip/)
+          gz =  Zlib::GzipReader.new(StringIO.new(curl.body_str))
+          body = gz.read
+          gz.close
+        elsif curl.header_str.match(/Content-Encoding: deflate/)
+          body = Zlib::Deflate.inflate(curl.body_str)
+        else
+          body = curl.body_str
+        end
+        return body
       end
     end
   end

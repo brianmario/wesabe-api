@@ -1,18 +1,19 @@
 require 'zlib' unless defined?(Zlib)
 require 'curb' unless defined?(Curl)
+require 'activesupport' unless defined?(ActiveSupport)
 
 module Apis
   module Wesabe
-    autoload :Account,                'apis/wesabe/account'
-    autoload :Base,                   'apis/wesabe/base'
-    autoload :Country,                'apis/wesabe/country'
-    autoload :Currency,               'apis/wesabe/currency'
-    autoload :FinancianInstitution,   'apis/wesabe/financial_institution'
-    autoload :Merchant,               'apis/wesabe/merchant'
-    autoload :Profile,                'apis/wesabe/profile'
-    autoload :Tag,                    'apis/wesabe/tag'
-    autoload :Transaction,            'apis/wesabe/transaction'
-    autoload :Transfer,               'apis/wesabe/transfer'
+    autoload :Account,                'wesabe/account'
+    autoload :Base,                   'wesabe/base'
+    autoload :Country,                'wesabe/country'
+    autoload :Currency,               'wesabe/currency'
+    autoload :FinancianInstitution,   'wesabe/financial_institution'
+    autoload :Merchant,               'wesabe/merchant'
+    autoload :Profile,                'wesabe/profile'
+    autoload :Tag,                    'wesabe/tag'
+    autoload :Transaction,            'wesabe/transaction'
+    autoload :Transfer,               'wesabe/transfer'
     
     class ApiObject
       def initialize(hash)
