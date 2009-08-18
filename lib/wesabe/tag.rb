@@ -11,10 +11,9 @@ module Apis
           @transactions_by_tag[self.name]
         else
           @transactions_by_tag[self.name] ||= begin
-            xml = Base.get("/transactions/tag/#{self.name}.xml")
-            transactions_hash = Hash.from_xml(xml)
+            xml = Nokogiri::XML(Base.get("/transactions/tag/#{self.name}.xml"))
             transactions = []
-            transactions_hash['txactions'].each do |transaction|
+            xml('txactions').each do |transaction|
               transactions << Transaction.new(transaction)
             end
             transactions

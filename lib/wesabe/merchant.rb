@@ -6,10 +6,9 @@ module Apis
           @transactions_by_merchant[self.id]
         else
           @transactions_by_merchant[self.id] ||= begin
-            xml = Base.get("/transactions/merchant/#{self.id}.xml")
-            transactions_hash = Hash.from_xml(xml)
+            xml = Nokogiri::XML(Base.get("/transactions/merchant/#{self.id}.xml"))
             transactions = []
-            transactions_hash['merchant']['txactions'].each do |transaction|
+            xml.css('merchant txactions').each do |transaction|
               transactions << Transaction.new(transaction)
             end
             transactions

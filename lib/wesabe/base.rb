@@ -3,7 +3,7 @@ module Apis
     class Base
       API_URL = 'www.wesabe.com'.freeze
       
-      def initialize(*args)
+      def initialize(args)
         if args.is_a?(Hash)
           @@username = args[:username]
           @@password = args[:password]
@@ -17,18 +17,17 @@ module Apis
       
       def profile
         @profile ||= begin
-          xml = Base.get('/profile.xml')
-          profile = Hash.from_xml(xml)
-          Profile.new(profile['profile'])
+          xml = Nokogiri::XML(Base.get('/profile.xml'))
+          puts xml.css('profile')
+          Profile.new(xml.css('profile'))
         end
       end
       
       def accounts
         @accounts ||= begin
-          xml = Base.get('/accounts.xml')
-          accounts_hash = Hash.from_xml(xml)
+          xml = Nokogiri::XML(Base.get('/accounts.xml'))
           accounts = []
-          accounts_hash['accounts']['account'].each do |account|
+          xml.css('account').each do |account|
             accounts << Account.new(account)
           end
           accounts
@@ -41,11 +40,9 @@ module Apis
       
       def transactions
         @transactions ||= begin
-          xml = Base.get("/transactions.xml")
-          transactions_hash = Hash.from_xml(xml)
-          puts transactions_hash.inspect
+          xml = Nokogiri::XML(Base.get('/transactions.xml'))
           transactions = []
-          transactions_hash['txactions'].each do |transaction|
+          xml.css('txactions').each do |transaction|
             transactions << Transaction.new(transaction)
           end
           transactions
@@ -53,36 +50,22 @@ module Apis
       end
       
       def transaction_search(terms)
-        xml = Base.get("/accounts/search?q=#{terms}&format=xml")
-        transactions_hash = Hash.from_xml(xml)
+        xml = Nokogiri::XML(Base.get("/accounts/search?q=#{terms}&format=xml"))
         transactions = []
-        transactions_hash['txactions'].each do |transaction|
+        xml.css('txactions').each do |transaction|
           transactions << Transaction.new(transaction)
         end
         transactions
       end
       
       def self.get(url)
-        body = ''
-        curl = Curl::Easy.new
-        curl.headers["Accept-encoding"] = 'gzip, deflate'
-        curl.follow_location = true
-        curl.connect_timeout = 5
-        curl.timeout = 5
-        curl.dns_cache_timeout = 5
-        curl.userpwd = "#{@@username}:#{@@password}"
-        curl.url = API_URL+url
-        curl.perform
-        if curl.header_str.match(/Content-Encoding: gzip/)
-          gz =  Zlib::GzipReader.new(StringIO.new(curl.body_str))
-          body = gz.read
-          gz.close
-        elsif curl.header_str.match(/Content-Encoding: deflate/)
-          body = Zlib::Deflate.inflate(curl.body_str)
-        else
-          body = curl.body_str
-        end
-        return body
+        req = Streamly::Request.new({
+          :method => :get,
+          :username => @@username,
+          :password => @@password,
+          :url => API_URL+url
+        })
+        return req.execute
       end
     end
   end

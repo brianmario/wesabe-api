@@ -3,11 +3,9 @@ module Apis
     class Account < ApiObject
       def transactions
         @transactions ||= begin
-          xml = Base.get("/accounts/#{self.guid}.xml")
-          transactions_hash = Hash.from_xml(xml)
-          puts transactions_hash.inspect
+          xml = Nokogiri::XML(Base.get("/accounts/#{self.guid}.xml"))
           transactions = []
-          transactions_hash['account']['txactions'].each do |transaction|
+          xml.css('account txactions').each do |transaction|
             transactions << Transaction.new(transaction)
           end
           transactions

@@ -1,6 +1,6 @@
-require 'zlib' unless defined?(Zlib)
-require 'curb' unless defined?(Curl)
-require 'activesupport' unless defined?(ActiveSupport)
+require 'rubygems' unless self.respond_to?(:gem)
+require 'streamly' unless defined?(Streamly)
+require 'nokogiri' unless defined?(Nokogiri)
 
 module Apis
   module Wesabe
@@ -16,12 +16,23 @@ module Apis
     autoload :Transfer,               'wesabe/transfer'
     
     class ApiObject
-      def initialize(hash)
-        @hash = hash
+      def initialize(node)
+        @node = node
+        @values = {}
+      end
+      
+      def id
+        method_missing(:id)
       end
       
       def method_missing(method, *args)
-        @hash[method.to_s]
+        if !@values.has_key?(method)
+          value = @node.css(method.to_s)
+          unless value.nil?
+            @values[method] = value.first.text
+          end
+        end
+        @values[method]
       end
     end
   end
